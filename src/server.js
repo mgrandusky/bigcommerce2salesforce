@@ -107,6 +107,7 @@ async function startServer() {
     });
 
     // Graceful shutdown
+    const shutdownTimeout = parseInt(process.env.SHUTDOWN_TIMEOUT_MS) || 10000;
     const shutdown = async () => {
       logger.info('Shutting down gracefully...');
       server.close(() => {
@@ -114,11 +115,11 @@ async function startServer() {
         process.exit(0);
       });
 
-      // Force shutdown after 10 seconds
+      // Force shutdown after timeout
       setTimeout(() => {
         logger.error('Forced shutdown');
         process.exit(1);
-      }, 10000);
+      }, shutdownTimeout);
     };
 
     process.on('SIGTERM', shutdown);

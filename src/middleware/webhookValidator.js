@@ -25,8 +25,12 @@ function validateWebhookSignature(req, res, next) {
       .update(payload)
       .digest('hex');
 
-    // Compare signatures
-    if (signature !== expectedSignature) {
+    // Compare signatures using constant-time comparison to prevent timing attacks
+    const receivedBuffer = Buffer.from(signature, 'hex');
+    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+    
+    if (receivedBuffer.length !== expectedBuffer.length || 
+        !crypto.timingSafeEqual(receivedBuffer, expectedBuffer)) {
       logger.warn('Invalid webhook signature', { 
         received: signature.substring(0, 10) + '...', 
         expected: expectedSignature.substring(0, 10) + '...' 

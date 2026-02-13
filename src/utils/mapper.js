@@ -113,7 +113,7 @@ function mapAbandonedCartToLead(cart, cartData) {
       FirstName: customerName.firstName,
       LastName: customerName.lastName,
       Email: customerEmail,
-      Company: customerName.firstName + ' ' + customerName.lastName,
+      Company: cart.company || cartData?.customer?.company || `${customerName.firstName} ${customerName.lastName}`,
       LeadSource: 'Abandoned Cart',
       Status: 'Open - Not Contacted',
       Description: `Abandoned Cart - ${new Date().toISOString()}\n\nCart ID: ${cart.id}\nCart Value: $${cartValue.toFixed(2)}\n\nItems:\n${itemsDescription}`,

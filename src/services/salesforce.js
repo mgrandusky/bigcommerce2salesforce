@@ -154,13 +154,13 @@ class SalesforceService {
     await this.ensureAuthenticated();
 
     try {
-      logger.info('Creating Order in Salesforce', { orderId: orderData.Id });
+      logger.info('Creating Order in Salesforce', { orderNumber: orderData.OrderNumber });
 
       const result = await this.conn.sobject('Order').create(orderData);
       
       if (result.success) {
         logger.info('Successfully created Order', { 
-          orderId: orderData.Id, 
+          orderNumber: orderData.OrderNumber, 
           salesforceOrderId: result.id 
         });
         return result.id;
@@ -168,7 +168,7 @@ class SalesforceService {
         throw new Error(`Failed to create Order: ${JSON.stringify(result.errors)}`);
       }
     } catch (error) {
-      logger.error('Error creating Order', { error: error.message, orderData });
+      logger.error('Error creating Order', { error: error.message, orderNumber: orderData.OrderNumber });
       throw error;
     }
   }

@@ -121,7 +121,9 @@ async function handleAbandonedCartWebhook(req, res) {
     // Get customer data if available
     let customerData = null;
     if (cart.customer_id) {
-      customerData = await bigcommerceService.getCustomer(cart.customer_id);
+      customerData = await retryOperation(() => 
+        bigcommerceService.getCustomer(cart.customer_id)
+      );
     }
 
     // Map cart to Salesforce Lead

@@ -107,6 +107,9 @@ class BigCommerceService {
 
   /**
    * Get customer by ID
+   * Note: Uses v3/customers endpoint with id:in filter which supports
+   * comma-separated IDs for bulk queries. For single customer lookup,
+   * this is the recommended approach per BigCommerce API v3 documentation.
    */
   async getCustomer(customerId) {
     try {
