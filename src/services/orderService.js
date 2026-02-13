@@ -104,10 +104,17 @@ class OrderService {
       if (orderItems.length > 0) {
         const results = await salesforceService.createBulk('OrderItem', orderItems);
         logger.info(`Created ${results.length} order line items`, { orderId });
+        return results;
       }
+      return [];
     } catch (error) {
-      logger.error('Error creating order line items', { error: error.message, orderId });
-      // Don't throw - order is already created, line items are supplementary
+      // Log warning but don't throw - order is already created, line items are supplementary
+      logger.warn('Failed to create order line items (non-critical)', { 
+        error: error.message, 
+        orderId,
+        productCount: bcProducts.length 
+      });
+      return []; // Return empty array to indicate line items creation failed
     }
   }
 

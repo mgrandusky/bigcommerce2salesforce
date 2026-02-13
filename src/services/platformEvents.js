@@ -84,19 +84,25 @@ class PlatformEventsService {
 
   /**
    * Publish generic platform event
+   * Note: This is currently a simulation. To actually publish events to Salesforce,
+   * uncomment the jsforce implementation and ensure the platform events are created in Salesforce.
    */
   async _publishEvent(eventType, eventData) {
     try {
       logger.info(`Publishing platform event: ${eventType}`, { eventData });
 
-      // In a real implementation, this would use jsforce to publish the platform event
-      // Example:
-      // await conn.sobject(eventType).create(eventData);
+      // TODO: Implement actual platform event publishing
+      // Requires jsforce connection and platform events to be created in Salesforce
+      // Example implementation:
+      // const salesforceService = require('./salesforce');
+      // await salesforceService.ensureAuthenticated();
+      // await salesforceService.conn.sobject(eventType).create(eventData);
       
-      // For now, just log it
-      logger.info('Platform event published (simulated)', { eventType, eventData });
+      // For now, just log the event (simulation mode)
+      logger.info('Platform event published (SIMULATION MODE)', { eventType, eventData });
+      logger.warn('Platform events are in simulation mode. To enable actual publishing, implement jsforce integration.');
       
-      return { success: true, eventType, eventData };
+      return { success: true, eventType, eventData, mode: 'simulation' };
     } catch (error) {
       logger.error(`Error publishing platform event: ${eventType}`, { 
         error: error.message, 

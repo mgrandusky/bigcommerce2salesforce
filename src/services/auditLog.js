@@ -13,6 +13,8 @@ class AuditLogService {
 
   /**
    * Log a sync operation
+   * Note: Currently stores logs in memory. For production, implement persistence to
+   * BC_Sync_Log__c custom object in Salesforce or external logging system.
    */
   async logOperation(operation, data, result, error = null) {
     if (!this.enabled) {
@@ -32,7 +34,7 @@ class AuditLogService {
       }
     };
 
-    // Store in memory (in production, this would go to custom object or external system)
+    // Store in memory (WARNING: logs lost on restart)
     this.logs.push(logEntry);
 
     // Also log to standard logger
@@ -42,7 +44,19 @@ class AuditLogService {
       logger.info(`Audit: ${operation} succeeded`, logEntry);
     }
 
-    // In a full implementation, we would create a BC_Sync_Log__c record here
+    // TODO: For production, persist to Salesforce BC_Sync_Log__c custom object
+    // Example:
+    // const salesforceService = require('./salesforce');
+    // await salesforceService.createRecord('BC_Sync_Log__c', {
+    //   Operation_Type__c: operation,
+    //   BigCommerce_ID__c: logEntry.metadata.bigCommerceId,
+    //   Salesforce_ID__c: logEntry.metadata.salesforceId,
+    //   Status__c: logEntry.result === 'success' ? 'Success' : 'Failed',
+    //   Error_Message__c: logEntry.error,
+    //   Sync_Date__c: logEntry.timestamp,
+    //   Duration_MS__c: logEntry.metadata.duration
+    // });
+
     return logEntry;
   }
 

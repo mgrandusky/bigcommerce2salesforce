@@ -167,8 +167,13 @@ class CartRecoveryService {
       
       return result.id;
     } catch (error) {
-      logger.error('Error creating recovery task', { error: error.message });
-      // Don't throw - task creation is supplementary
+      // Log warning but don't throw - task creation is supplementary
+      // The cart recovery was successful even if task creation failed
+      logger.warn('Failed to create recovery task (non-critical)', { 
+        error: error.message,
+        cartResult 
+      });
+      return null; // Return null to indicate task creation failed
     }
   }
 
