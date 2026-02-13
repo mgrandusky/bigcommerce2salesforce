@@ -1,17 +1,71 @@
 # BigCommerce to Salesforce Integration
 
-A comprehensive Node.js application that syncs BigCommerce orders and abandoned carts to Salesforce in real-time using webhooks.
+A comprehensive enterprise-grade Node.js application that syncs BigCommerce orders and abandoned carts to Salesforce in real-time using webhooks.
 
-## Features
+## ✨ Features
 
+### Core Features
 - ✅ **Real-time Order Sync** - Automatically sync completed orders from BigCommerce to Salesforce
-- ✅ **Abandoned Cart Recovery** - Track abandoned carts as Salesforce Leads
+- ✅ **Abandoned Cart Recovery** - Track abandoned carts as Salesforce Leads or Opportunities
 - ✅ **Secure Webhooks** - Validate webhook signatures for security
 - ✅ **Automatic Retry Logic** - Handle API failures with exponential backoff
 - ✅ **Comprehensive Logging** - Debug and monitor all operations
 - ✅ **OAuth 2.0 Authentication** - Secure Salesforce connection
 - ✅ **Data Mapping** - Transform BigCommerce data to Salesforce format
 - ✅ **Duplicate Prevention** - Upsert operations to avoid duplicates
+
+### Enterprise Features 🚀
+
+#### Advanced Order Management
+- ✅ Order Line Items with product details
+- ✅ Payment transaction details tracking
+- ✅ Tax & shipping breakdown
+- ✅ Fulfillment status and tracking numbers
+- 🔄 Bidirectional order status sync (planned)
+- 🔄 Product catalog sync (planned)
+- 🔄 Refunds & returns management (planned)
+
+#### Enhanced Customer Intelligence
+- ✅ **Customer Lifetime Value (CLV)** - Automatic calculation and tracking
+- ✅ **Customer Segmentation** - Bronze, Silver, Gold, Platinum tiers
+- ✅ **RFM Analysis** - Recency, Frequency, Monetary scoring
+- ✅ **Customer Tags** - VIP, First-Time Buyer, At-Risk auto-tagging
+- ✅ Account & Contact hierarchy support
+
+#### Smart Cart Recovery
+- ✅ **High-Value Opportunities** - Create opportunities for carts over $100
+- ✅ **Low-Value Leads** - Create leads for smaller carts
+- ✅ **Recovery Tasks** - Auto-create follow-up tasks for sales reps
+- ✅ **Cart Expiration** - Automatically close old opportunities
+- ✅ Value-based routing (configurable thresholds)
+
+#### Sales Automation
+- ✅ **Platform Events** - Publish events for order created, updated, shipped, cart abandoned
+- ✅ Event-driven architecture support
+- 🔄 Chatter integration (planned)
+- 🔄 Approval processes for high-value orders (planned)
+
+#### Data Quality & Governance
+- ✅ **Audit Trail** - Complete logging of all sync operations
+- ✅ Field history tracking support
+- ✅ Comprehensive error handling
+- 🔄 GDPR compliance tools (planned)
+
+### Configuration & Flexibility
+- 🎛️ **Feature Flags** - Enable/disable features without code changes
+- ⚙️ **Configurable Thresholds** - Customize tier levels, cart values, etc.
+- 🔧 **Custom Field Mapping** - Map to your Salesforce custom fields
+- 🌍 **Environment-Based Configuration** - Sandbox and Production support
+
+## 📚 Documentation
+
+- **[Quick Start Guide](QUICKSTART.md)** - Get up and running in 15 minutes
+- **[Salesforce Setup Guide](docs/SALESFORCE_SETUP.md)** - Detailed Salesforce configuration
+- **[Features Guide](docs/FEATURES.md)** - Complete feature documentation
+- **[API Documentation](API.md)** - Webhook endpoints and payloads
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
+- **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Technical overview
+- **[Changelog](CHANGELOG.md)** - Version history
 
 ## Architecture
 
