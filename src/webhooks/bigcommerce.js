@@ -1,8 +1,14 @@
 const bigcommerceService = require('../services/bigcommerce');
 const salesforceService = require('../services/salesforce');
+const orderService = require('../services/orderService');
+const customerAnalyticsService = require('../services/customerAnalytics');
+const cartRecoveryService = require('../services/cartRecovery');
+const platformEventsService = require('../services/platformEvents');
+const auditLogService = require('../services/auditLog');
 const { mapOrderToSalesforce, mapCustomerData, mapAbandonedCartToLead } = require('../utils/mapper');
 const logger = require('../utils/logger');
 const { config } = require('../config');
+const { isFeatureEnabled } = require('../config/features');
 
 /**
  * Retry logic for failed operations
@@ -68,13 +74,36 @@ async function handleOrderWebhook(req, res) {
       salesforceService.findOrCreateContact(customerData, accountId)
     );
 
-    // Map order to Salesforce format
-    const salesforceOrder = mapOrderToSalesforce(order, accountId, contactId);
+    // Fetch order products for line items
+    let products = [];
+    if (isFeatureEnabled('orderLineItems')) {
+      products = await retryOperation(() => 
+        bigcommerceService.getOrderProducts(orderId)
+      );
+    }
 
-    // Create order in Salesforce
+    // Create order with line items using enhanced service
     const salesforceOrderId = await retryOperation(() => 
-      salesforceService.createOrder(salesforceOrder)
+      orderService.createOrderWithLineItems(order, products, accountId, contactId)
     );
+
+    // Update customer analytics
+    if (isFeatureEnabled('customerLifetimeValue') || isFeatureEnabled('customerSegmentation')) {
+      await customerAnalyticsService.updateCustomerAnalytics(accountId, parseFloat(order.total_inc_tax));
+    }
+
+    // Publish platform event
+    if (isFeatureEnabled('platformEvents')) {
+      await platformEventsService.publishOrderCreated({
+        orderId: salesforceOrderId,
+        bigCommerceOrderId: orderId,
+        accountId,
+        totalAmount: parseFloat(order.total_inc_tax)
+      });
+    }
+
+    // Log to audit trail
+    await auditLogService.logOrderSync(orderId, salesforceOrderId, true);
 
     logger.info('Successfully synced order to Salesforce', { 
       orderId, 
@@ -95,6 +124,9 @@ async function handleOrderWebhook(req, res) {
       error: error.message,
       stack: error.stack
     });
+
+    // Log failure to audit trail
+    await auditLogService.logOrderSync(orderId, null, false, error);
 
     res.status(500).json({
       success: false,
@@ -126,24 +158,46 @@ async function handleAbandonedCartWebhook(req, res) {
       );
     }
 
-    // Map cart to Salesforce Lead
-    const lead = mapAbandonedCartToLead(cart, customerData);
+    // Prepare customer data for cart recovery
+    const mappedCustomerData = customerData ? {
+      first_name: customerData.first_name || 'Unknown',
+      last_name: customerData.last_name || 'Customer',
+      email: customerData.email || cart.email || 'unknown@example.com',
+      phone: customerData.phone || '',
+      company: customerData.company || ''
+    } : mapCustomerData({ billing_address: cart.billing_address, customer_email: cart.email });
 
-    // Create Lead in Salesforce
-    const salesforceLeadId = await retryOperation(() => 
-      salesforceService.createLead(lead)
+    // Use cart recovery service to create Opportunity or Lead based on value
+    const result = await retryOperation(() => 
+      cartRecoveryService.processAbandonedCart(cart, mappedCustomerData)
     );
+
+    // Publish platform event
+    if (isFeatureEnabled('platformEvents')) {
+      await platformEventsService.publishCartAbandoned({
+        cartId: cart.id,
+        customerEmail: mappedCustomerData.email,
+        cartValue: result.cartValue,
+        leadId: result.type === 'Lead' ? result.id : null,
+        opportunityId: result.type === 'Opportunity' ? result.id : null
+      });
+    }
+
+    // Log to audit trail
+    await auditLogService.logCartSync(cartId, result.id, true);
 
     logger.info('Successfully synced abandoned cart to Salesforce', { 
       cartId, 
-      salesforceLeadId
+      type: result.type,
+      id: result.id
     });
 
     res.status(200).json({
       success: true,
       message: 'Abandoned cart synced successfully',
       cartId,
-      salesforceLeadId
+      type: result.type,
+      salesforceId: result.id
     });
   } catch (error) {
     logger.error('Error processing abandoned cart webhook', { 
@@ -151,6 +205,9 @@ async function handleAbandonedCartWebhook(req, res) {
       error: error.message,
       stack: error.stack
     });
+
+    // Log failure to audit trail
+    await auditLogService.logCartSync(cartId, null, false, error);
 
     res.status(500).json({
       success: false,

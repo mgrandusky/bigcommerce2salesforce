@@ -234,6 +234,126 @@ class SalesforceService {
       throw error;
     }
   }
+
+  /**
+   * Create a record in Salesforce
+   */
+  async createRecord(objectType, data) {
+    await this.ensureAuthenticated();
+
+    try {
+      logger.info(`Creating ${objectType} record`, { data });
+      const result = await this.conn.sobject(objectType).create(data);
+      
+      if (result.success) {
+        logger.info(`Successfully created ${objectType}`, { id: result.id });
+        return result;
+      } else {
+        throw new Error(`Failed to create ${objectType}: ${JSON.stringify(result.errors)}`);
+      }
+    } catch (error) {
+      logger.error(`Error creating ${objectType}`, { error: error.message, data });
+      throw error;
+    }
+  }
+
+  /**
+   * Update a record in Salesforce
+   */
+  async updateRecord(objectType, data) {
+    await this.ensureAuthenticated();
+
+    try {
+      logger.info(`Updating ${objectType} record`, { id: data.Id });
+      const result = await this.conn.sobject(objectType).update(data);
+      
+      if (result.success) {
+        logger.info(`Successfully updated ${objectType}`, { id: result.id });
+        return result;
+      } else {
+        throw new Error(`Failed to update ${objectType}: ${JSON.stringify(result.errors)}`);
+      }
+    } catch (error) {
+      logger.error(`Error updating ${objectType}`, { error: error.message, data });
+      throw error;
+    }
+  }
+
+  /**
+   * Create multiple records in bulk
+   */
+  async createBulk(objectType, records) {
+    await this.ensureAuthenticated();
+
+    try {
+      logger.info(`Creating ${records.length} ${objectType} records in bulk`);
+      const results = await this.conn.sobject(objectType).create(records);
+      
+      const successful = Array.isArray(results) 
+        ? results.filter(r => r.success).length 
+        : (results.success ? 1 : 0);
+      
+      logger.info(`Bulk create completed`, { 
+        objectType, 
+        total: records.length, 
+        successful 
+      });
+      
+      return Array.isArray(results) ? results : [results];
+    } catch (error) {
+      logger.error(`Error creating ${objectType} records in bulk`, { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Update multiple records in bulk
+   */
+  async updateBulk(objectType, records) {
+    await this.ensureAuthenticated();
+
+    try {
+      logger.info(`Updating ${records.length} ${objectType} records in bulk`);
+      const results = await this.conn.sobject(objectType).update(records);
+      
+      const successful = Array.isArray(results) 
+        ? results.filter(r => r.success).length 
+        : (results.success ? 1 : 0);
+      
+      logger.info(`Bulk update completed`, { 
+        objectType, 
+        total: records.length, 
+        successful 
+      });
+      
+      return Array.isArray(results) ? results : [results];
+    } catch (error) {
+      logger.error(`Error updating ${objectType} records in bulk`, { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Upsert a record (insert or update based on external ID)
+   */
+  async upsertRecord(objectType, externalIdField, data) {
+    await this.ensureAuthenticated();
+
+    try {
+      logger.info(`Upserting ${objectType} record`, { externalIdField });
+      const result = await this.conn.sobject(objectType).upsert(data, externalIdField);
+      
+      if (result.success) {
+        logger.info(`Successfully upserted ${objectType}`, { id: result.id });
+        return result;
+      } else {
+        throw new Error(`Failed to upsert ${objectType}: ${JSON.stringify(result.errors)}`);
+      }
+    } catch (error) {
+      logger.error(`Error upserting ${objectType}`, { error: error.message, data });
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance
