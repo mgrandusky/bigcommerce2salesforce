@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  bigcommerce-salesforce:
+    build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-3000}
+      - BIGCOMMERCE_CLIENT_ID=${BIGCOMMERCE_CLIENT_ID}
+      - BIGCOMMERCE_CLIENT_SECRET=${BIGCOMMERCE_CLIENT_SECRET}
+      - BIGCOMMERCE_ACCESS_TOKEN=${BIGCOMMERCE_ACCESS_TOKEN}
+      - BIGCOMMERCE_STORE_HASH=${BIGCOMMERCE_STORE_HASH}
+      - BIGCOMMERCE_API_URL=${BIGCOMMERCE_API_URL:-https://api.bigcommerce.com}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - SALESFORCE_CLIENT_ID=${SALESFORCE_CLIENT_ID}
+      - SALESFORCE_CLIENT_SECRET=${SALESFORCE_CLIENT_SECRET}
+      - SALESFORCE_USERNAME=${SALESFORCE_USERNAME}
+      - SALESFORCE_PASSWORD=${SALESFORCE_PASSWORD}
+      - SALESFORCE_SECURITY_TOKEN=${SALESFORCE_SECURITY_TOKEN}
+      - SALESFORCE_INSTANCE_URL=${SALESFORCE_INSTANCE_URL:-https://login.salesforce.com}
+      - SALESFORCE_API_VERSION=${SALESFORCE_API_VERSION:-v57.0}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MAX_RETRY_ATTEMPTS=${MAX_RETRY_ATTEMPTS:-3}
+      - RETRY_DELAY_MS=${RETRY_DELAY_MS:-5000}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
